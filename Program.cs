@@ -45,13 +45,6 @@ if (string.IsNullOrEmpty(clientId))
     return;
 }
 
-if (!doOauth && string.IsNullOrEmpty(config.RefreshToken))
-{
-    Console.Error.WriteLine("No saved login. Run again with --oauth (add --config to remember it).");
-    Environment.ExitCode = 1;
-    return;
-}
-
 var spotify = await Connect(clientId, config.RefreshToken, doOauth, configDir);
 
 // Windows media overlay
@@ -155,10 +148,12 @@ static void Usage() => Console.WriteLine("""
                               Created if it does not exist. Omit it and
                               nothing is written to disk.
       -i, --client-id <id>    client id from your Spotify developer app
-      -j, --oauth             log in through the browser
+      -j, --oauth             force a fresh browser login, to switch account.
+                              Logging in happens on its own when there is
+                              no saved login.
       -h, --help              this message
 
-    first run:   SpotSMTCSrv -i <client id> -j -c C:\path\spotsmtc
+    first run:   SpotSMTCSrv -i <client id> -c C:\path\spotsmtc
     after that:  SpotSMTCSrv -c C:\path\spotsmtc
     """);
 
