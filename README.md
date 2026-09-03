@@ -1,7 +1,8 @@
-# SpotSMTCSrv
+# SpotSMTC
 
-This program simply pipes spotify media from any device (using a developer app) to Window's System Media Transport Controls without the need for the spotify app or any other frontend.
-or the niche case that you need it :)
+This program simply pipes spotify media from any device (using a developer app) to Window's **System Media Transport Controls** without the need for the spotify app or any other frontend.
+
+for the niche case that you need it :)
 ## Use
 
 ```
