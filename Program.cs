@@ -143,6 +143,8 @@ while (true)
         Console.WriteLine($"spotify: {ex.Message}");
     }
 
+    // player is unreferenced after line 62; without this the GC collects it and the session vanishes.
+    GC.KeepAlive(player);
     await Task.Delay(1000);
 }
 
@@ -157,8 +159,8 @@ static void Usage() => Console.WriteLine("""
                               no saved login.
       -h, --help              this message
 
-    first run:   SpotSMTCSrv -i <client id> -c %APPDATA%\SpotSMTC
-    after that:  SpotSMTCSrv -c %APPDATA%\SpotSMTC
+    first run:   SpotSMTC -i <client id> -c %APPDATA%\SpotSMTC
+    after that:  SpotSMTC -c %APPDATA%\SpotSMTC
     """);
 
 // Config
