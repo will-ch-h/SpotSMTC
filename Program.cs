@@ -1,5 +1,9 @@
+using System.Net;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
+using Microsoft.Win32;
 using SpotifyAPI.Web;
 using SpotifyAPI.Web.Auth;
 using Windows.Media;
@@ -26,6 +30,8 @@ for (var i = 0; i < args.Length; i++)
     }
 }
 
+configDir = configDir is null ? null : Environment.ExpandEnvironmentVariables(configDir);
+
 // Catch this now rather than after the browser dance, when Save would throw.
 if (configDir is not null && File.Exists(configDir))
 {
@@ -45,12 +51,12 @@ if (string.IsNullOrEmpty(clientId))
     return;
 }
 
-var spotify = await Connect(clientId, config.RefreshToken, doOauth, configDir);
+// Windows media overlay identity.
+const string appId = "SpotSMTCSrv";
+SetCurrentProcessExplicitAppUserModelID(appId);
+Registry.SetValue($@"HKEY_CURRENT_USER\Software\Classes\AppUserModelId\{appId}", "DisplayName", "SpotSMTC");
 
-// Windows media overlay
-// Without this Windows has no idea who we are and the overlay says "Unknown app".
-// Must happen before the session below is created.
-SetCurrentProcessExplicitAppUserModelID("SpotSMTCSrv");
+var spotify = await Connect(clientId, config.RefreshToken, doOauth, configDir);
 
 var player = new MediaPlayer();
 var smtc = player.SystemMediaTransportControls;
@@ -151,8 +157,8 @@ static void Usage() => Console.WriteLine("""
                               no saved login.
       -h, --help              this message
 
-    first run:   SpotSMTCSrv -i <client id> -c C:\path\spotsmtc
-    after that:  SpotSMTCSrv -c C:\path\spotsmtc
+    first run:   SpotSMTCSrv -i <client id> -c %APPDATA%\SpotSMTC
+    after that:  SpotSMTCSrv -c %APPDATA%\SpotSMTC
     """);
 
 // Config
@@ -165,7 +171,8 @@ static Config Load(string? dir)
 
     try
     {
-        return JsonSerializer.Deserialize<Config>(File.ReadAllText(file)) ?? new Config(null, null);
+        var stored = JsonSerializer.Deserialize<Config>(File.ReadAllText(file)) ?? new Config(null, null);
+        return stored with { RefreshToken = Unprotect(stored.RefreshToken) };
     }
     catch (JsonException ex)
     {
@@ -181,8 +188,28 @@ static void Save(string? dir, string clientId, string? refreshToken)
 
     Directory.CreateDirectory(dir);
     File.WriteAllText(ConfigFile(dir), JsonSerializer.Serialize(
-        new Config(clientId, refreshToken),
+        new Config(clientId, Protect(refreshToken)),
         new JsonSerializerOptions { WriteIndented = true }));
+}
+
+// DPAPI, so the file is inert for any other Windows account that can read it.
+static string Protect(string token) => Convert.ToBase64String(
+    ProtectedData.Protect(Encoding.UTF8.GetBytes(token), null, DataProtectionScope.CurrentUser));
+
+static string? Unprotect(string? stored)
+{
+    if (string.IsNullOrEmpty(stored)) return null;
+
+    try
+    {
+        return Encoding.UTF8.GetString(
+            ProtectedData.Unprotect(Convert.FromBase64String(stored), null, DataProtectionScope.CurrentUser));
+    }
+    catch (Exception ex) when (ex is CryptographicException or FormatException)
+    {
+        // Another account's file, or one written before this was encrypted. Log in again.
+        return null;
+    }
 }
 
 static string ConfigFile(string dir) => Path.Combine(dir, "config.json");
@@ -223,27 +250,51 @@ static async Task<PKCETokenResponse> LogIn(string clientId)
 {
     var redirect = new Uri("http://127.0.0.1:5000/callback");
     var (verifier, challenge) = PKCEUtil.GenerateCodes();
-    var done = new TaskCompletionSource<PKCETokenResponse>();
+    var state = Convert.ToHexString(RandomNumberGenerator.GetBytes(16));
 
-    var server = new EmbedIOAuthServer(redirect, 5000);
-    await server.Start();
-    server.AuthorizationCodeReceived += async (_, response) =>
-    {
-        await server.Stop();
-        done.SetResult(await new OAuthClient().RequestToken(
-            new PKCETokenRequest(clientId, response.Code, redirect, verifier)));
-    };
+    // Our own listener rather than EmbedIOAuthServer, which binds every interface.
+    using var listener = new HttpListener();
+    listener.Prefixes.Add("http://127.0.0.1:5000/");
+    listener.Start();
 
-    var login = new LoginRequest(server.BaseUri, clientId, LoginRequest.ResponseType.Code)
+    var login = new LoginRequest(redirect, clientId, LoginRequest.ResponseType.Code)
     {
         CodeChallengeMethod = "S256",
         CodeChallenge = challenge,
+        State = state,
         Scope = new List<string> { Scopes.UserReadPlaybackState, Scopes.UserModifyPlaybackState },
     };
 
     Console.WriteLine("Opening your browser to log in to Spotify...");
     BrowserUtil.Open(login.ToUri());
-    return await done.Task;
+
+    // Anything without our state is someone else knocking; answer it and keep waiting.
+    string? code = null, error = null;
+    while (code is null && error is null)
+    {
+        var ctx = await listener.GetContextAsync();
+        var query = ctx.Request.QueryString;
+
+        if (query["state"] == state)
+        {
+            code = query["code"];
+            error = query["error"];
+        }
+
+        var body = Encoding.UTF8.GetBytes(
+            code is not null ? "Logged in. You can close this tab."
+            : error is not null ? $"Login failed: {error}"
+            : "Waiting for the Spotify callback.");
+        ctx.Response.ContentType = "text/plain; charset=utf-8";
+        ctx.Response.ContentLength64 = body.Length;
+        await ctx.Response.OutputStream.WriteAsync(body);
+        ctx.Response.Close();
+    }
+
+    if (code is null) throw new InvalidOperationException($"Spotify refused the login: {error}");
+
+    return await new OAuthClient().RequestToken(
+        new PKCETokenRequest(clientId, code, redirect, verifier));
 }
 
 [DllImport("shell32.dll", CharSet = CharSet.Unicode, PreserveSig = false)]

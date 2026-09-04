@@ -10,6 +10,7 @@
   <ItemGroup>
     <PackageReference Include="SpotifyAPI.Web" Version="7.4.2" />
     <PackageReference Include="SpotifyAPI.Web.Auth" Version="7.4.2" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.11" />
   </ItemGroup>
 
 </Project>
