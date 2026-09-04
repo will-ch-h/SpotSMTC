@@ -12,6 +12,7 @@ for the niche case that you need it :)
     c. Tick Web API  
     d. Note the Client ID
 2. Run with -c -i and -j flags once  
+<<<<<<< HEAD
     ``` SpotSMTC.exe -c C:/Path/To/Config -i ClientID -j ```  
     a. A browser window should open asking to authenticate 
 3. Run only with -c afterwards!
