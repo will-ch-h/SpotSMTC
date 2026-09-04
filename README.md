@@ -11,3 +11,7 @@ for the niche case that you need it :)
 | -i    | --client-id \<id> | Client ID from Spotify Developer App.                                                                       |
 | -j    | --oauth           | Force a fresh browser login, to switch account. Logging in happens on its own when there is no saved login. |
 | -h    | --help            |                                                                                                       |
+
+--------------
+### Libraries Used/Acknowledgements 
+[JohnnyCrazy/SpotifyAPI-NET](https://github.com/JohnnyCrazy/SpotifyAPI-NET)
