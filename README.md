@@ -5,6 +5,16 @@ This program simply pipes spotify media from any device (using a developer app) 
 for the niche case that you need it :)
 ## Use
 
+1. Download the appropiate binary from github releases
+2. Navigate to the [Spotify Developer Console](https://developer.spotify.com)  
+    a. Create a project (Any name and description)  
+    b. Set Redirect URI to ```http://127.0.0.1:5000/callback```  
+    c. Tick Web API  
+    d. Note the Client ID
+2. Run with -c -i and -j flags once  
+    ``` SpotSMTC-v.1.0.2-win-x64.exe -c C:/Path/To/Config -i ClientID -j ```
+3. Run only with -c afterwards!
+
 | Short | Long              | Description                                                                                                 |
 | :---- | :---------------- | :---------------------------------------------------------------------------------------------------------- |
 | -c    | --config \<dir>   | Directory to keep the client id and login in. Nothing is written to disk if omitted.                        |
