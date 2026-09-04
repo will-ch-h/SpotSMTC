@@ -10,6 +10,8 @@ using Windows.Media;
 using Windows.Media.Playback;
 using Windows.Storage.Streams;
 
+AttachConsole(-1);
+
 string? configDir = null;
 string? clientIdArg = null;
 var doOauth = false;
@@ -298,6 +300,9 @@ static async Task<PKCETokenResponse> LogIn(string clientId)
     return await new OAuthClient().RequestToken(
         new PKCETokenRequest(clientId, code, redirect, verifier));
 }
+
+[DllImport("kernel32.dll")]
+static extern bool AttachConsole(int processId);
 
 [DllImport("shell32.dll", CharSet = CharSet.Unicode, PreserveSig = false)]
 static extern void SetCurrentProcessExplicitAppUserModelID(string appID);
