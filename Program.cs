@@ -3,7 +3,6 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using Microsoft.Win32;
 using SpotifyAPI.Web;
 using SpotifyAPI.Web.Auth;
 using Windows.Media;
@@ -52,11 +51,6 @@ if (string.IsNullOrEmpty(clientId))
     Environment.ExitCode = 1;
     return;
 }
-
-// Windows media overlay identity.
-const string appId = "SpotSMTCSrv";
-SetCurrentProcessExplicitAppUserModelID(appId);
-Registry.SetValue($@"HKEY_CURRENT_USER\Software\Classes\AppUserModelId\{appId}", "DisplayName", "SpotSMTC");
 
 var spotify = await Connect(clientId, config.RefreshToken, doOauth, configDir);
 
@@ -303,8 +297,5 @@ static async Task<PKCETokenResponse> LogIn(string clientId)
 
 [DllImport("kernel32.dll")]
 static extern bool AttachConsole(int processId);
-
-[DllImport("shell32.dll", CharSet = CharSet.Unicode, PreserveSig = false)]
-static extern void SetCurrentProcessExplicitAppUserModelID(string appID);
 
 record Config(string? ClientId, string? RefreshToken);
