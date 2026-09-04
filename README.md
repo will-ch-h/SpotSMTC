@@ -1,6 +1,6 @@
 # SpotSMTC
 
-This program simply pipes spotify media from any device (using a developer app) to Window's **System Media Player** without the need for the spotify app or any other frontend.
+This program simply pipes spotify media from any device (using a developer app) to Window's **System Media Player** without the need for the spotify app or any other heavy frontend.
 
 for the niche case that you need it :)
 ## Use
@@ -13,9 +13,13 @@ Premium is required for playback controls. But the song/artist/album will still 
     c. Tick Web API  
     d. Note the Client ID
 2. Run with -c -i and -j flags once  
-    ``` SpotSMTC.exe -c C:/Path/To/Config -i ClientID -j ```  
-    a. A browser window should open asking to authenticate 
+    ``` SpotSMTC.exe -c C:\Path\To\Config -i ClientID -j ```  
+    &nbsp; A browser window should open asking to authenticate 
 3. Run only with -c afterwards!
+
+If you want to have the service run in the background on startup:  
+&nbsp; Add a shortcut in shell:startup where the target is ```C:Path\To\SpotSMTC.exe -c C:\Path\To\ConfigDir```  
+&nbsp; You can set the name of the app and icon shown in the media controller by renaming the shortcut and/or changing the icon.  
 
 | Short | Long              | Description                                                                                                 |
 | :---- | :---------------- | :---------------------------------------------------------------------------------------------------------- |
