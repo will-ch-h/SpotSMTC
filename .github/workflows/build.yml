@@ -24,14 +24,14 @@ jobs:
       - name: Publish EXE
         run: dotnet publish -c Release -r ${{ matrix.rid }} -p:PublishSingleFile=true --self-contained -o ./publish-${{ matrix.rid }}
 
-      - name: Rename
-        run: Rename-Item -Path "./publish-${{ matrix.rid }}/SpotSMTC.exe" -NewName "SpotSMTC-${{ github.ref_name }}-${{ matrix.rid }}.exe"
+      - name: Zip
+        run: Compress-Archive -Path "./publish-${{ matrix.rid }}/SpotSMTC.exe" -DestinationPath "./SpotSMTC-${{ github.ref_name }}-${{ matrix.rid }}.zip"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Executable-${{ matrix.rid }}
-          path: ./publish-${{ matrix.rid }}/*.exe
+          path: ./SpotSMTC-${{ github.ref_name }}-${{ matrix.rid }}.zip
 
   release:
     needs: build
@@ -50,5 +50,5 @@ jobs:
       - name: Create Release and Attach Files
         uses: softprops/action-gh-release@v2
         with:
-          files: ./release-assets/*.exe
+          files: ./release-assets/*.zip
           generate_release_notes: true
