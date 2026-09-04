@@ -1,9 +1,10 @@
 # SpotSMTC
 
-This program simply pipes spotify media from any device (using a developer app) to Window's **System Media Transport Controls** without the need for the spotify app or any other frontend.
+This program simply pipes spotify media from any device (using a developer app) to Window's **System Media Player** without the need for the spotify app or any other frontend.
 
 for the niche case that you need it :)
 ## Use
+Premium is required for playback controls. But the song/artist/album will still be displayed for a free account.
 
 1. Download the appropiate binary from github releases
 2. Navigate to the [Spotify Developer Console](https://developer.spotify.com)  
