@@ -142,8 +142,6 @@ while (true)
 
 // CLI Flags
 static void Usage() => Console.WriteLine("""
-    SpotSMTCSrv - shows Spotify playback in the Windows media overlay.
-
       -c, --config <dir>      directory to keep the client id and login in.
                               Created if it does not exist. Omit it and
                               nothing is written to disk.
