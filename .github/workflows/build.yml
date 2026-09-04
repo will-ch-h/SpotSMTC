@@ -1,0 +1,51 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*' 
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rid: [win-x64, win-x86, win-arm64]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+        
+    - name: Publish EXE
+      run: dotnet publish -c Release -r ${{ matrix.rid }} -p:PublishSingleFile=true --self-contained -o ./publish-${{ matrix.rid }}
+      
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Executable-${{ matrix.rid }}
+        path: ./publish-${{ matrix.rid }}/*.exe
+
+  release:
+    needs: build 
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write 
+
+    steps:
+    - name: Download all built EXEs
+      uses: actions/download-artifact@v4
+      with:
+        pattern: Executable-*
+        path: ./release-assets
+        merge-multiple: true 
+
+    - name: Create Release and Attach Files
+      uses: softprops/action-gh-release@v2
+      with:
+        files: ./release-assets/*.exe
+        generate_release_notes: true
