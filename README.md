@@ -19,7 +19,7 @@ Premium is required for playback controls. But the song/artist/album will still 
 
 If you want to have the service run in the background on startup:  
 &nbsp; Add a shortcut in shell:startup where the target is ```C:Path\To\SpotSMTC.exe -c C:\Path\To\ConfigDir```  
-&nbsp; You can set the name of the app and icon shown in the media controller by renaming the shortcut and/or changing the icon.  
+&nbsp; You can set the name of the app and icon shown in the media controller by editing the shortcut  
 
 | Short | Long              | Description                                                                                                 |
 | :---- | :---------------- | :---------------------------------------------------------------------------------------------------------- |
